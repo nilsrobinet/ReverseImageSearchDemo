@@ -1,7 +1,7 @@
 # Reverse image search based on: https://github.com/towhee-io/examples/blob/main/image/reverse_image_search/1_build_image_search_engine.ipynb
 
 import pymilvus as pmv
-import logging as log
+import argparse
 
 import ImageUtil
 import Embedder
@@ -40,6 +40,7 @@ class ReverseImageSearch(pmv.MilvusClient):
         if image is None:
             print(f'Failed to load image from URL: {url}')
             return False
+        print(f'Loaded: {url}')
         image = ImageUtil.ImageUtil.resizeImage(image, self.embedder.imgShape)
         data['embedding'] = self.embedder.embedd(image)
         self.insert(collection_name=self.collectionName, data=data)
@@ -66,11 +67,31 @@ class ReverseImageSearch(pmv.MilvusClient):
 if __name__ == "__main__":
     import TestValues
     # revImgSearch = ReverseImageSearch('wikimedia', clear=True)
-    revImgSearch = ReverseImageSearch('wikimedia', clear=False)
-    # failedUrls = []
-    # for url in TestValues.TEST_URLs:
-    #     success = revImgSearch.insertSingleImage(url) 
-    #     if not success: failedUrls.append(url)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--action')
+    parser.add_argument('--path')
+    parser.add_argument('--url')
+    parser.add_argument('--clear',type=bool)
+    args = parser.parse_args()
+    
+    if args.clear:
+        print('clearing database')
+        revImgSearch = ReverseImageSearch('wikimedia', clear=True)
+    else:
+        revImgSearch = ReverseImageSearch('wikimedia', clear=False)
+    
+    if args.action == "insert":
+        with open(args.path) as fp:
+            urls = [l.replace('\n','') for l in fp.readlines()]
 
-    res = revImgSearch.querySingleImage(TestValues.TEST_QUERY)
-    print(res)
+        failedUrls = []
+        for url in urls:
+            success = revImgSearch.insertSingleImage(url) 
+            if not success: failedUrls.append(url)
+        print(f'Failed to insert {len(failedUrls)}images with urls:\n{urls}')
+
+    elif args.action == "query":
+        res = revImgSearch.querySingleImage(args.url)
+        print(res)
+    else:
+        print('Unknows action {args.action}. (insert|query)')

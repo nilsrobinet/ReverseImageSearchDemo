@@ -2,6 +2,8 @@ import requests
 import re
 import time
 import bs4
+import argparse
+import random
 
 class WikimediaCrawler(object):
     '''Simple webcrawler that crawls wikimedia for images that can be fed into the ReverseImageSearch engine'''
@@ -25,42 +27,58 @@ class WikimediaCrawler(object):
     def isImage(self, url):
         return "https://upload.wikimedia.org" in url and any([s in url[-4:] for s in self.img_types])
 
-    def crawl(self, url, timeout_s = 10, first = True):
-        if first:
-            self.startTime = time.time()
-        if time.time() - self.startTime > timeout_s:
-            return
+    def isPatternExcluded(self, url):
+        exclueded = False
+        if 'wikimedia.org' not in url: exclueded = True
+        #if 'commons' not in url or 'upload' not in url: exclueded = True
+        if 'Template:Quality_image' in url: exclueded = True
+        if '//meta' in url: exclueded = True
+        if '//donate' in url: exclueded = True
+        if '//stats' in url: exclueded = True
+        if '//foundation' in url: exclueded = True
+        if re.fullmatch(".*\/\/..\.wikimedia.*", url) is not None: exclueded = True
+        return exclueded
+
+    def crawl(self, startUrl, timeout_s = 10):
+        tStart = time.time()
+
+        visitedUrls = []
+        imageUrls = []
+        nextUrls = [startUrl]
+
+        curUrl = startUrl
+        while ((time.time() - tStart) < timeout_s ):
+            print(f'Checking {curUrl}')
+            nextUrls.remove(curUrl)
+            try:
+                resp = requests.get(curUrl, headers=self.headers)
+                links = self.getLinks(resp.text)
+                visitedUrls.append(curUrl)
+            except:
+                pass
+            # print(visitedUrls)
+
+            for l in links:
+                if l is None: continue
+                if self.isPatternExcluded(l): continue
+                if self.isImage(l) and l not in imageUrls: imageUrls.append(l)
+                elif l not in nextUrls and l not in visitedUrls: nextUrls.append(l)
+            random.shuffle(nextUrls)
+            curUrl = nextUrls[0]
+        return imageUrls, len(visitedUrls)
         
-        self.visited.append(url)
-        if url in self.newLinks:
-            self.newLinks.remove(url)
-
-        try:
-            resp = requests.get(url, headers=self.headers)
-            links = self.getLinks(resp.text)
-        except:
-            return
-
-        for l in links:
-            if l is None: continue
-            if 'wikimedia.org' not in l: continue
-            if self.isImage(l) and l not in self.media:
-                self.media.append(l)
-            elif l not in self.newLinks and l not in self.visited:
-                self.newLinks.append(l)
-        
-        self.newLinks.sort(key=lambda x: not any([s in x for s in self.img_types]))
-
-        for l in self.newLinks:
-            self.crawl(l, first=False)
-
 if __name__ == "__main__":
     crwl = WikimediaCrawler()
-    crwl.crawl("https://commons.wikimedia.org/w/index.php?search=puppy&title=Special:MediaSearch&go=Go&type=image", timeout_s=60)
     
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--url')
+    parser.add_argument('--time', type=int, default= 10)
+    parser.add_argument('--out', default='media_links.txt')
+    args = parser.parse_args()
 
-    print(f'Found {len(crwl.media)} images and visited {len(crwl.visited)} sites')
+    crwl.media, visited = crwl.crawl(args.url, timeout_s=args.time)
+    print(f'Found {len(crwl.media)} images and visited {visited} sites')
 
-    with open('media_links.txt', "w") as fp:
+    with open(args.out, "w") as fp:
         for l in crwl.media:
             fp.write(l + '\n')
