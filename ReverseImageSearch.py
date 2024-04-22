@@ -4,7 +4,7 @@ import pymilvus as pmv
 import argparse
 
 import ImageUtil
-import Embedder
+import DinoEmbedder
 
 # constants
 METRIC_TYPE='L2'
@@ -36,23 +36,20 @@ class ReverseImageSearch(pmv.MilvusClient):
             'url':url,
             'embedding':None
         }
-        image = ImageUtil.ImageUtil.loadImage(url) 
-        if image is None:
-            print(f'Failed to load image from URL: {url}')
+        try:
+            data['embedding'] = self.embedder.embedd(url)
+        except Exception as ex:
+            print(f'Failed to load/embedd {url} - reason: {ex}')
             return False
-        print(f'Loaded: {url}')
-        image = ImageUtil.ImageUtil.resizeImage(image, self.embedder.imgShape)
-        data['embedding'] = self.embedder.embedd(image)
         self.insert(collection_name=self.collectionName, data=data)
         return True
 
     def querySingleImage(self, url, numResults = 3):
-        image = ImageUtil.ImageUtil.loadImage(url) 
-        if image is None:
+        try:
+            query_vectors = [self.embedder.embedd(url)]
+        except:
             print(f'Failed to load image from URL: {url}')
             return False
-        image = ImageUtil.ImageUtil.resizeImage(image, self.embedder.imgShape)
-        query_vectors = [self.embedder.embedd(image)]
 
         res = self.search(self.collectionName, query_vectors, limit=numResults)
 
@@ -60,7 +57,7 @@ class ReverseImageSearch(pmv.MilvusClient):
 
     def __init__(self, collectionName, clear) -> None:
         super().__init__()
-        self.embedder = Embedder.Embedder()
+        self.embedder = DinoEmbedder.DinoEmbedder()
         self.collectionName = collectionName
         self._getCollection(collectionName=collectionName, clearCollection=clear)
 
@@ -76,16 +73,17 @@ if __name__ == "__main__":
     
     if args.clear:
         print('clearing database')
-        revImgSearch = ReverseImageSearch('wikimedia', clear=True)
+        revImgSearch = ReverseImageSearch('wikimedia_dino', clear=True)
     else:
-        revImgSearch = ReverseImageSearch('wikimedia', clear=False)
+        revImgSearch = ReverseImageSearch('wikimedia_dino', clear=False)
     
     if args.action == "insert":
         with open(args.path) as fp:
             urls = [l.replace('\n','') for l in fp.readlines()]
 
         failedUrls = []
-        for url in urls:
+        for count, url in enumerate(urls):
+            print(f'Inserting {count} of {len(urls)}\r',end='')
             success = revImgSearch.insertSingleImage(url) 
             if not success: failedUrls.append(url)
         print(f'Failed to insert {len(failedUrls)}images with urls:\n{urls}')

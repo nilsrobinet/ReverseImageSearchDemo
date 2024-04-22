@@ -13,7 +13,8 @@ class ImageUtil(object):
         headers = {'User-Agent': 'reverseImageSearchTest/0.0'}
         resp = requests.get(url,headers=headers)
         bytes = np.asarray(bytearray(resp.content), dtype="uint8")
-        img = cv2.imdecode(bytes, flags=0)
+        # img = cv2.imdecode(bytes, flags=0)
+        img = cv2.imdecode(bytes)
         return img
 
     @staticmethod
