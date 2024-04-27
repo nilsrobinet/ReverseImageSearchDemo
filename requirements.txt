@@ -8,5 +8,3 @@ pillow==10.2.0
 transformers==4.39.3
 pymilvus==2.3.6
 transformers==4.39.3
---index-url https://download.pytorch.org/whl/cpu
-torch==2.2.2
