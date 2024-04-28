@@ -1,0 +1,32 @@
+body {
+    background-color: lightgray;
+}
+
+.column {
+    float: left;
+    width: 30%;
+    padding: 5px;
+}
+
+.row::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+#searchUrl {
+    width: 45%;
+    display: block;
+    margin-top: 10%;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: larger;
+}
+
+#searchButton {
+    width: 25%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: larger;
+}

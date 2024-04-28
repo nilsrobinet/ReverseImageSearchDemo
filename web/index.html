@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html>
-<script src="script.js"></script> 
+<head>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script> 
+</head>
 <body>
     <form onsubmit="search()">
         <input type="text" id="searchUrl" name="searchUrl"><br>
-        <input type="button" onclick="search()" value="search" > 
+        <input type="button" id="searchButton" onclick="search()" value="search" > 
       </form>
-      <div id="result_1"> </div> 
-      <div id="result_2"> </div> 
-      <div id="result_3"> </div> 
+      <div class="row">
+        <div class="column" id="result_1"> </div> 
+        <div class="column" id="result_2"> </div> 
+        <div class="column" id="result_3"> </div> 
+      </div>
 </body>
 </html>
