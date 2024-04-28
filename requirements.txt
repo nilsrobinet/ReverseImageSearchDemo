@@ -8,3 +8,4 @@ pillow==10.2.0
 transformers==4.39.3
 pymilvus==2.3.6
 transformers==4.39.3
+CherryPy==18.9.0
