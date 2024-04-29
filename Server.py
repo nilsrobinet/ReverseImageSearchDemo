@@ -18,6 +18,7 @@ class ReverseImageSearchWebapp:
 if __name__ == '__main__':
 
     PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "web")
+    cherrypy.config.update({'server.socket_port': 8081})
     conf = {
         '/': {
             'tools.sessions.on': True,
