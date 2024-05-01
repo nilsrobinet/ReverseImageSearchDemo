@@ -2,8 +2,8 @@
 
 import pymilvus as pmv
 import argparse
+import time
 
-import ImageUtil
 import DinoEmbedder
 
 # constants
@@ -16,6 +16,7 @@ class ReverseImageSearch(pmv.MilvusClient):
         if clearCollection:
             self.drop_collection(collectionName)
         if collectionName in self.list_collections():
+            print(self.describe_collection(collection_name=collectionName))
             return
         fields = [
             pmv.FieldSchema(name="url", dtype=pmv.DataType.VARCHAR, description="URL to image", max_length = 500, is_primary = True, auto_id=False),
@@ -30,8 +31,11 @@ class ReverseImageSearch(pmv.MilvusClient):
         }
         schema = pmv.CollectionSchema(fields=fields, description='reverse image search')
         self.create_collection_with_schema(collection_name=collectionName, schema=schema, index_params=index_params)
+        print(self.describe_collection(collection_name=collectionName))
 
     def insertSingleImage(self, url) -> bool:
+        print(f"Inserting {url} ...")
+        t_start = time.time()
         data = {
             'url':url,
             'embedding':None
@@ -42,9 +46,11 @@ class ReverseImageSearch(pmv.MilvusClient):
             print(f'Failed to load/embedd {url} - reason: {ex}')
             return False
         self.insert(collection_name=self.collectionName, data=data)
+        print(f"Done ({time.time() - t_start}s)")
         return True
 
     def querySingleImage(self, url, numResults = 3):
+        print(f"Quering data base with embedding for url: {url}")
         try:
             query_vectors = [self.embedder.embedd(url)]
         except:
@@ -52,7 +58,8 @@ class ReverseImageSearch(pmv.MilvusClient):
             return False
 
         res = self.search(self.collectionName, query_vectors, limit=numResults)
-
+        print(f'Recieved {len(res[0])} results')
+        print(res[0])
         return res
 
     def __init__(self, collectionName, clear) -> None:
@@ -83,7 +90,7 @@ if __name__ == "__main__":
 
         failedUrls = []
         for count, url in enumerate(urls):
-            print(f'Inserting {count} of {len(urls)}\r',end='')
+            #print(f'Inserting {count} of {len(urls)}\r',end='')
             success = revImgSearch.insertSingleImage(url) 
             if not success: failedUrls.append(url)
         print(f'Failed to insert {len(failedUrls)}images with urls:\n{urls}')

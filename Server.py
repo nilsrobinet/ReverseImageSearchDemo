@@ -15,6 +15,10 @@ class ReverseImageSearchWebapp:
         res = self.revImgSearch.querySingleImage(url)
         return res
 
+    @cherrypy.expose
+    def insert(self, url):
+        self.revImgSearch.insertSingleImage(url)
+
 if __name__ == '__main__':
 
     PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "web")

@@ -1,4 +1,12 @@
 
+function insert() {
+    url = document.getElementById("insertUrl").value;
+    console.log("Insert " + url)
+    document.getElementById("insertUrl").value  = "";
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/insert?url="+url);
+    xhr.send();
+}
 
 function search () {
     url = document.getElementById('searchUrl').value;
