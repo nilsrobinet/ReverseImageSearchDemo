@@ -49,6 +49,10 @@ class ReverseImageSearch(pmv.MilvusClient):
         print(f"Done ({time.time() - t_start}s)")
         return True
 
+    def deleteSingelImage(self, url):
+        print(f'Deleting {url} form Database')
+        self.delete(self.collectionName, url)
+
     def querySingleImage(self, url, numResults = 3):
         print(f"Quering data base with embedding for url: {url}")
         try:

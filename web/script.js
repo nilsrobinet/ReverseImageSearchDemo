@@ -8,6 +8,15 @@ function insert() {
     xhr.send();
 }
 
+function deleteUrl(){
+    url = document.getElementById("insertUrl").value;
+    console.log("Delete " + url)
+    document.getElementById("insertUrl").value  = "";
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/delete?url="+url);
+    xhr.send();
+}
+
 function search () {
     url = document.getElementById('searchUrl').value;
     console.log("Searching for: " + url);

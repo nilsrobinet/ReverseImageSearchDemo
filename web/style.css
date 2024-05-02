@@ -14,6 +14,14 @@ body {
     display: table;
 }
 
+#insertUrl {
+    font-size: larger;
+}
+
+.editBtn {
+    font-size: larger;
+}
+
 #searchUrl {
     width: 45%;
     display: block;
