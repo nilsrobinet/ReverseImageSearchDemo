@@ -63,7 +63,7 @@ class ReverseImageSearch(pmv.MilvusClient):
         return res
 
     def __init__(self, collectionName, clear) -> None:
-        super().__init__()
+        super().__init__(uri="http://milvus:19530")
         self.embedder = DinoEmbedder.DinoEmbedder()
         self.collectionName = collectionName
         self._getCollection(collectionName=collectionName, clearCollection=clear)
